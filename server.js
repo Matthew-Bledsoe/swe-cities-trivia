@@ -35,20 +35,6 @@ app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
 
-app.get("/", (req, res) => {
-    res.render("home", { 
-        favoriteFood: "Spaghetti",
-        experience: "I love cooking spaghetti because it reminds me of family dinners. The smell of roasting tomatos for the sauce and garlic fills the house, it reminds me of a more comforting time!"
-    });
-});
-
-app.get("/top5", (req, res) => {
-    db.query("SELECT username, score FROM scores ORDER BY score DESC LIMIT 50 OFFSET 0", (err, results) => {
-        res.render("leaderboard", { 
-            players: results
-        });
-    });
-});
 
 app.get("/leaderboard", (req, res) => {
     const page = parseInt(req.query.page) || 1;
