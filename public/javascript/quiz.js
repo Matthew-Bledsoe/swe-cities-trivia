@@ -102,7 +102,7 @@ function nextQuestion() {
     document.getElementById("timer").textContent = "";
     setAnswerButtons("Cities", "go", "here", "(:");
     startButton.style.display = "block";
-    output.textContent = "Incorrect";
+    output.textContent = "";
     score = 0;
     answerShow = 0;
   }
