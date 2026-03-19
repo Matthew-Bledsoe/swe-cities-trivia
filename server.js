@@ -5,21 +5,9 @@ const port = 3000;
 const mysql = require("mysql2");
 const path = require("path");
 
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT
-});
 
-db.connect(err => {
-    if(err) {
-        console.error("Database connection failed:", err);
-    } else {
-        console.log("Connected to MySQL!");
-    }
-});
+
+
 
 app.listen(port, function () {
   console.log(`Example app listening on port ${port}!`);
@@ -35,6 +23,10 @@ app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");
 });
 
+app.get("/quiz", (req, res) => {
+    res.render("quiz", { 
+    });
+});
 app.get("/", (req, res) => {
     res.render("home");
 });
