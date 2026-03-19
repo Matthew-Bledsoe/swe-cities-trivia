@@ -35,22 +35,19 @@
     <div class="leaderboard-box">
         <ol start="<%= (currentPage - 1) * 30 + 1 %>">
             <% players.forEach(player => { %>
-                <li><strong><%= player.username %></strong>: <%= player.score %> points</li>
-            <% }) %>
+            <li><strong><%= player.username %></strong>: 
+            <%= player.score %> points</li><% }) %>
         </ol>
 
         <div class="pages">
             <% if (currentPage > 1) { %>
-                <a href="/leaderboard?page=<%= currentPage - 1 %>">Prev</a>
-            <% } %>
+                <a href="/leaderboard?page=<%= currentPage - 1 %>">Prev</a><% } %>
 
             <% for (let i = 1; i <= totalPages; i++) { %>
-                <a href="/leaderboard?page=<%= i %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a>
-            <% } %>
+                <a href="/leaderboard?page=<%= i %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a><% } %>
 
             <% if (currentPage < totalPages) { %>
-                <a href="/leaderboard?page=<%= currentPage + 1 %>">Next</a>
-            <% } %>
+                <a href="/leaderboard?page=<%= currentPage + 1 %>">Next</a><% } %>
         </div>
     </div>
 </body>
