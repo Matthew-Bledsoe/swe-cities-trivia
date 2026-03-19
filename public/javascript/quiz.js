@@ -48,11 +48,13 @@ let score = 0;
 let timeLeft = 10;
 let timer;
 let correctAnswer = "";
+let answerShow = 0;
 
 function startQuiz() {
   index = 0;
   showQuestion();
   startButton.style.display = "none";
+  answerShow = 1;
 }
 
 
@@ -102,6 +104,7 @@ function nextQuestion() {
     startButton.style.display = "block";
     output.textContent = "Incorrect";
     score = 0;
+    answerShow = 0;
   }
 }
 
@@ -160,7 +163,10 @@ function handleAnswer(event) {
     score = score + timeLeft * 10;
     output.textContent = "Correct!";
   } else {
-    output.textContent = "Incorrect";
+    if(answerShow){
+      output.textContent = "Incorrect";
+    }
+    
   }
 
   setTimeout(nextQuestion, 300);
