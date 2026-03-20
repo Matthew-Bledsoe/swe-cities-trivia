@@ -6,7 +6,14 @@ const mysql = require("mysql2");
 const path = require("path");
 
 
-
+//DO NOT TOUCH THIS SECTION
+const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+});
+//DO NOT TOUCH THIS SECTION ABOVE
 
 
 app.listen(port, function () {
