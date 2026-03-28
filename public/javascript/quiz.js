@@ -1,20 +1,4 @@
-//With the use of a SQL server we can load the questions into an array 
 
-// I think that one way to do the questions is we assign 
-// them types which will determine alln teh potential answers the
-// y are paried with for example city, COunty, State, Number. Then we select 
-// that specific answerr for the qwuestion and three random ansers of the same type.
-// we can also 
-
-
-
-
-//this represents the incorect answers i dont know exactly how to do this with
-//my sql but we copuld probably jujst take in a speciific amount of things
-
-
-//ABOVE THIS WILL BE REPLACED BY SQL
-//when im done im goiung to mnake variabales for all the getelemebnt by id so its cleaner
 let output = document.getElementById("output");
 let startButton = document.getElementById("startButton");
 
@@ -42,8 +26,8 @@ function showQuestion(){
     document.getElementById("question").textContent = questions[index][0];
     //setAnswers creates the answer buttons including the correct one
     setAnswers(index);
-    document.getElementById("questionIndex").textContent = `${index+1}/10`;
-    document.getElementById("score").textContent = `${score} /1000`;
+    document.getElementById("questionIndex").textContent = `${index+1}/ ${questions.length}`;
+    document.getElementById("score").textContent = `${score} / ${questions.length *100}`;
     timeLeft = 10;
     document.getElementById("timer").textContent = `Time : ${timeLeft}`;
 

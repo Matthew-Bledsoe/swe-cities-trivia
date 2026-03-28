@@ -77,10 +77,26 @@ function initializeTables(db) {
             QuestionID INT AUTO_INCREMENT PRIMARY KEY,
             Question VARCHAR(255),
             Answer VARCHAR(255),
-            Points INT,
-            Type VARCHAR(255),
-            Regions VARCHAR(45)
+            Points INT NULL DEFAULT 1,
+            Type VARCHAR(255)
         )
+    `;
+
+
+    const quizQuestionsTable=`
+        CREATE TABLE IF NOT EXISTS QuizQuestions (
+            QuizID INT,
+            QuestionID INT,
+            QuestionOrder INT,
+
+            PRIMARY KEY (QuizID, QuestionID),
+
+            FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID)
+            ON DELETE CASCADE,
+
+            FOREIGN KEY (QuestionID) REFERENCES Questions(QuestionID)
+            ON DELETE CASCADE
+            )
     `;
 
     db.query(scoresTable, (err) => {
@@ -101,6 +117,11 @@ function initializeTables(db) {
     db.query(quizzesTable, (err) =>{
         if(err) throw err;
         console.log("Quiz table ensured.");
+    });
+
+    db.query(quizQuestionsTable, (err) =>{
+        if(err) throw err;
+        console.log("QuizQuestions table ensured.");
     });
 }
 
@@ -131,19 +152,26 @@ app.use(express.static("public"));
 
 
 
-app.get("/quiz/:region", (req, res) => {
-    const region = req.params.region;
+app.get("/quiz/:id", (req, res) => {
+    const id = req.params.id;
 
-    const query = "SELECT * FROM Questions WHERE Region = ?";
-    const query2 = "SELECT Answer FROM Questions"
+    const query1 = `
+    SELECT qb.*
+    FROM QuizQuestions qq
+    JOIN Questions qb 
+    ON qq.QuestionID = qb.QuestionID
+    WHERE qq.QuizID = ?
+    ORDER BY qq.QuestionOrder;
+    `
+    const query2 = "SELECT Answer FROM Questions";
 
-    db.query(query, [region], (err, results) => {
+    db.query(query1, [id], (err, results1) => {
         if (err) throw err;
         db.query(query2,(err,results2)=>{
             if(err) throw err;
             res.render("quiz",{
-                region:        region,
-                questionsTable:results,
+                id:id,
+                questionsTable:results1,
                 allAnswers:    results2
             });
         
@@ -165,11 +193,11 @@ app.get("/daily", (req, res) => {
 });
 
 app.get("/practice", (req, res) => {
-    const query = "SELECT DISTINCT Region FROM Questions"
+    const query = "SELECT * FROM Quizzes"
 
     db.query(query, (err, results) => {
         if (err) throw err;
-        res.render("practice",{regions: results});
+        res.render("practice",{quizzesTable: results});
     });
     
 });

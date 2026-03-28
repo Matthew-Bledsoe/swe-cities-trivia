@@ -26,20 +26,13 @@
         </div>
     </header>
     <ul>
-        <% regions.forEach(region => { %>
-            <li>
-                <a href = "/quiz/<%= region.Region %>">
-                    
-                    <%= region.Region.replace( '_',' ') %>
-                </a>
-            </li>
-
-        <% }) %>
-        
-        
-       
+    <% quizzesTable.forEach(function(quiz) { %>
+        <li>
+            <a href="/quiz/<%= quiz.QuizID %>">
+                <%= quiz.TITLE %>
+            </a>
+        </li>
+    <% }); %>
     </ul>
-    
-
 </body>
 </html>
