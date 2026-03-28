@@ -78,7 +78,8 @@ function initializeTables(db) {
             Question VARCHAR(255),
             Answer VARCHAR(255),
             Points INT,
-            Type VARCHAR(255)
+            Type VARCHAR(255),
+            Regions VARCHAR(45)
         )
     `;
 
@@ -135,7 +136,7 @@ app.use(express.static("public"));
 
 app.get("/quiz/:id", (req, res) => {
     const region = req.params.id;
-    
+
     res.render("quiz",{region:region});
     
 });
