@@ -41,6 +41,11 @@ startButton.addEventListener("click", startQuiz);
 
 
 function showQuestion(){
+
+  answerBox1.disabled = false;
+  answerBox2.disabled = false;
+  answerBox3.disabled = false;
+  answerBox4.disabled = false;
   
     correctAnswer = questions[index][1];
 
@@ -146,9 +151,15 @@ answerBox3.addEventListener("click", handleAnswer);
 answerBox4.addEventListener("click", handleAnswer);
 
 function handleAnswer(event) {
-  const selected = event.target.textContent;
+  const selected = event.target.textContent; 
 
   clearInterval(timer);
+
+  answerBox1.disabled = true;
+  answerBox2.disabled = true;
+  answerBox3.disabled = true;
+  answerBox4.disabled = true;
+
 
   if (selected === correctAnswer) {
     score = score + timeLeft * 10;
@@ -181,3 +192,4 @@ function submitAnswers(){
 
 
 }
+console.log(cities);
