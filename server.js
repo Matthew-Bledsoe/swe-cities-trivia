@@ -9,6 +9,7 @@ let db; // declare in outer scope
 const bcrypt = require('bcrypt');
 const session = require("express-session");
 
+app.use(express.json());
 app.use(session({
     secret: "secret-key",
     resave:false,
@@ -77,9 +78,33 @@ function initializeTables(db) {
             QuestionID INT AUTO_INCREMENT PRIMARY KEY,
             Question VARCHAR(255),
             Answer VARCHAR(255),
-            Points INT,
+            Points INT NULL DEFAULT 1,
             Type VARCHAR(255)
         )
+    `;
+
+
+    const quizQuestionsTable=`
+        CREATE TABLE IF NOT EXISTS QuizQuestions (
+            QuizID INT,
+            QuestionID INT,
+            QuestionOrder INT,
+
+            PRIMARY KEY (QuizID, QuestionID),
+
+            FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID)
+            ON DELETE CASCADE,
+
+            FOREIGN KEY (QuestionID) REFERENCES Questions(QuestionID)
+            ON DELETE CASCADE
+            )
+    `;
+    //this is for testing
+    const fakeTable=`
+        CREATE TABLE IF NOT EXISTS fakeTable(
+            ID INT AUTO_INCREMENT PRIMARY KEY,
+            Value INT
+            )
     `;
 
     db.query(scoresTable, (err) => {
@@ -100,6 +125,16 @@ function initializeTables(db) {
     db.query(quizzesTable, (err) =>{
         if(err) throw err;
         console.log("Quiz table ensured.");
+    });
+
+    db.query(quizQuestionsTable, (err) =>{
+        if(err) throw err;
+        console.log("QuizQuestions table ensured.");
+    });
+
+    db.query(fakeTable, (err) => {
+        if (err) throw err;
+        console.log("fake table ensured");
     });
 }
 
@@ -128,10 +163,47 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static("public"));
 
-app.get("/quiz", (req, res) => {
-    res.render("quiz", { 
+
+//Im not acsesing the quizzes using there id but instead there title which may be bad.
+app.get("/quiz/:name", (req, res) => {
+    const name = req.params.name;
+
+    const query0 = "SELECT QuizID, Title FROM Quizzes WHERE Title = ?";
+
+    const query1 = `
+    SELECT qb.*
+    FROM QuizQuestions qq
+    JOIN Questions qb 
+    ON qq.QuestionID = qb.QuestionID
+    WHERE qq.QuizID = ?
+    ORDER BY qq.QuestionOrder;
+    `;
+
+    const query2 = "SELECT Answer FROM Questions";
+
+    db.query(query0, [name], (err, quizResult) => {
+        if (err) throw err;
+        if (quizResult.length === 0) return res.status(404).send("Quiz not found");
+
+        const quiz = quizResult[0];
+
+        db.query(query1, [quiz.QuizID], (err, results1) => {
+            if (err) throw err;
+            db.query(query2, (err, results2) => {
+                if (err) throw err;
+                res.render("quiz", {
+                    id:            quiz.QuizID,
+                    title:         quiz.Title,
+                    questionsTable: results1,
+                    allAnswers:    results2
+                });
+            });
+        });
     });
 });
+
+
+
 app.get("/", (req, res) => {
     res.render("home");
 });
@@ -141,7 +213,13 @@ app.get("/daily", (req, res) => {
 });
 
 app.get("/practice", (req, res) => {
-    res.render("practice");
+    const query = "SELECT * FROM Quizzes"
+
+    db.query(query, (err, results) => {
+        if (err) throw err;
+        res.render("practice",{quizzesTable: results});
+    });
+    
 });
 
 app.get("/account", (req, res) => {
@@ -168,3 +246,30 @@ app.get("/leaderboard", (req, res) => {
     });
 });
 
+//this receives the data from the quiz.js file and adds it to the DB 
+app.post("/api/save-score", (req, res) => {
+    const query = "INSERT INTO FakeTable (Value) VALUES (?)"; //This line will be modified when we do this for real
+    /* idk if this is needed or not.
+    //this is to ensure the grade is caldulated outside of the clients reach
+    const answerArray = req.body.answerArray;
+    //the use of questions in this function can be replaced with another query
+    const questions = req.body.questions;
+    const timesArray = req.body.timesArray;
+    
+    
+    let score = 0;
+    for(let i = 0; i<answerArray.length; i++){
+        if(answerArray[i] === questions[i][1] ){
+            score = score +( 10 * timesArray[i] * questions[i][2]);//add score multiplier here if needed
+        }
+    }
+    */
+    const score = req.body.score;
+    db.query(query,[score],(err,result)=>{
+        if(err){
+            console.error(err);
+            return res.status(500).send("Database Error");
+        }
+        res.json({ message: "Score saved!" });
+    });
+});

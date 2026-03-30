@@ -25,7 +25,14 @@
             </nav>
         </div>
     </header>
-    <a href = "/quiz"> Do the quiz? </a>
-
+    <ul>
+    <% quizzesTable.forEach(function(quiz) { %>
+        <li>
+            <a href="/quiz/<%= quiz.TITLE %>">
+                <%= quiz.TITLE %>
+            </a>
+        </li>
+    <% }); %>
+    </ul>
 </body>
 </html>

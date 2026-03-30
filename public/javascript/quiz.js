@@ -1,82 +1,75 @@
-//With the use of a SQL server we can load the questions into an array 
 
-// I think that one way to do the questions is we assign 
-// them types which will determine alln teh potential answers the
-// y are paried with for example city, COunty, State, Number. Then we select 
-// that specific answerr for the qwuestion and three random ansers of the same type.
-// we can also 
-
-const questions = [
-  ["What is the capital of the USA?", "Washington, D.C."],
-  ["What is the most populous city in Europe?", "Istanbul"],
-  ["What is the capital of India?", "New Delhi"],
-  ["Which city here would you nuke?", "Paris"],
-  ["What is the capital of Germany?", "Berlin"],
-  ["What us city is named Austin", "Austin"],
-  ["What is the capital of Canada?", "Ottawa"],
-  ["What is the capital of Finland?", "Helsinki"],
-  ["What is the capital of Japan?", "Tokyo"],
-  ["What is the capital of Spain?", "Madrid"]
-];
-
-//this represents the incorect answers i dont know exactly how to do this with
-//my sql but we copuld probably jujst take in a speciific amount of things
-const cities = [
-  // --- New Capitals (28 total) ---
-  "Amsterdam", "Brussels", "Copenhagen", "Dublin", "Lisbon",
-  "Prague", "Budapest", "Warsaw", "Athens", "Zurich",
-  "Reykjavik", "Tallinn", "Riga", "Vilnius", "Sofia",
-  "Bucharest", "Belgrade", "Zagreb", "Ljubljana", "Bratislava",
-  "Doha", "Abu Dhabi", "Kuala Lumpur", "Singapore", "Hanoi",
-  "Manila", "Lima", "Santiago",
-
-  // --- Non-Capital Cities (25 total) ---
-  "New York", "Los Angeles", "Chicago", "Houston", "Toronto",
-  "Vancouver", "Sydney", "Melbourne", "São Paulo", "Rio de Janeiro",
-  "Shanghai", "Mumbai", "Bangalore", "Istanbul", "Dubai",
-  "Johannesburg", "Cape Town", "Barcelona", "Munich", "Milan",
-  "Lyon", "Manchester", "Busan", "Osaka", "Auckland"
-];
-
-//ABOVE THIS WILL BE REPLACED BY SQL
-//when im done im goiung to mnake variabales for all the getelemebnt by id so its cleaner
-let output = document.getElementById("output");
-let startButton = document.getElementById("startButton");
+//From database
+//  questions = [[Question,answer,points]]
+//  cities =[answer]
+let output =        document.getElementById("output");
+let startButton =   document.getElementById("startButton");
+let question =      document.getElementById("question");
+let questionIndex = document.getElementById("questionIndex");
+let scoreDisplay =  document.getElementById("score")
+let timerDisplay =  document.getElementById("timer");
+let answerBox1 =    document.getElementById("ans1");
+let answerBox2=     document.getElementById("ans2");
+let answerBox3 =    document.getElementById("ans3");
+let answerBox4 =    document.getElementById("ans4");
 
 
 let score = 0;
 let timeLeft = 10;
 let timer;
 let correctAnswer = "";
-let answerShow = 0;
+let answerArray = [];
+let timesArray = [];
+let pointsMultiplier = 1;
 
+// Hide answer buttons initially
+answerBox1.style.display = "none";
+answerBox2.style.display = "none";
+answerBox3.style.display = "none";
+answerBox4.style.display = "none";
+
+
+//function ran at the start of every quiz
 function startQuiz() {
+  scoreDisplay.textContent = (`${score}`);
   index = 0;
   showQuestion();
   startButton.style.display = "none";
-  answerShow = 1;
+  answerBox1.style.display = "block";
+  answerBox2.style.display = "block";
+  answerBox3.style.display = "block";
+  answerBox4.style.display = "block";
 }
 
 
 startButton.addEventListener("click", startQuiz);
 
 
+
+
+
 function showQuestion(){
+
+  answerBox1.disabled = false;
+  answerBox2.disabled = false;
+  answerBox3.disabled = false;
+  answerBox4.disabled = false;
+  
     correctAnswer = questions[index][1];
 
-    document.getElementById("question").textContent = questions[index][0];
+    question.textContent = questions[index][0];
     //setAnswers creates the answer buttons including the correct one
     setAnswers(index);
-    document.getElementById("questionIndex").textContent = `${index+1}/10`;
-    document.getElementById("score").textContent = `${score} /1000`;
+    questionIndex.textContent = `${index+1}/${questions.length}`;
+    
     timeLeft = 10;
-    document.getElementById("timer").textContent = `Time : ${timeLeft}`;
+    timerDisplay.textContent = `Time : ${timeLeft}`;
 
     clearInterval(timer);
 
     timer = setInterval(() => {
     timeLeft--;
-    document.getElementById("timer").textContent = `Time: ${timeLeft}`;
+    timerDisplay.textContent = `Time: ${timeLeft}`;
     
     if(timeLeft === 9){
         output.textContent= "";
@@ -86,8 +79,8 @@ function showQuestion(){
       clearInterval(timer);
       setTimeout(nextQuestion,100); 
       output.textContent= "TIME OVER";
-      
     }
+
   }, 1000);
 
 }
@@ -97,14 +90,21 @@ function nextQuestion() {
    
   if (index < questions.length) {
     showQuestion();
-  } else {
+  } else {//end of quiz
     document.getElementById("question").textContent = `Quiz finished!` ;
     document.getElementById("timer").textContent = "";
-    setAnswerButtons("Cities", "go", "here", "(:");
+    answerBox1.style.display = "none";
+    answerBox2.style.display = "none";
+    answerBox3.style.display = "none";
+    answerBox4.style.display = "none";
     startButton.style.display = "block";
     output.textContent = "";
+    submitAnswers();//sends answers and score to DB
+    answerArray = [];
     score = 0;
-    answerShow = 0;
+
+   
+    
   }
 }
 
@@ -112,8 +112,10 @@ function nextQuestion() {
 function setAnswers(index){
     //This gets a number 1-4 for the position of the correct ans
     const ans = Math.floor(Math.random() * 4) + 1;
+    //Find the index of the correct answer to exclude it from incorrect answers
+    const correctCityIndex = cities.indexOf(questions[index][1]);
     //this selects the other three incoredct answeres
-    const inccorects = getThreeUnique(0,50);
+    const inccorects = getThreeUnique(0, cities.length - 1, correctCityIndex);
     const inc1= inccorects[0];
     const inc2= inccorects[1];
     const inc3 = inccorects[2];
@@ -131,10 +133,12 @@ function setAnswers(index){
 
 }
 
-//this is to get three numbers that are not the same so that i can get gunique incorect answers
-function getThreeUnique(min, max) {
+//this is to get three numbers that are not the same so that i can get unique incorect answers
+function getThreeUnique(min, max, excludeIndex) {
   const arr = [];
-  for (let i = min; i <= max; i++) arr.push(i);
+  for (let i = min; i <= max; i++) {
+    if (i !== excludeIndex) arr.push(i);
+  }
   // shuffle
   arr.sort(() => Math.random() - 0.5);
 
@@ -143,31 +147,58 @@ function getThreeUnique(min, max) {
 
 //Takes in four strings to be displayed on the buttons (simplifies earlier code)
 function setAnswerButtons(one, two, three, four){
-    document.getElementById("ans1").textContent = one;
-    document.getElementById("ans2").textContent = two;
-    document.getElementById("ans3").textContent = three;
-    document.getElementById("ans4").textContent = four;
+    answerBox1.textContent = one;
+    answerBox2.textContent = two;
+    answerBox3.textContent = three;
+    answerBox4.textContent = four;
 }
 
-document.getElementById("ans1").addEventListener("click", handleAnswer);
-document.getElementById("ans2").addEventListener("click", handleAnswer);
-document.getElementById("ans3").addEventListener("click", handleAnswer);
-document.getElementById("ans4").addEventListener("click", handleAnswer);
+answerBox1.addEventListener("click", handleAnswer);
+answerBox2.addEventListener("click", handleAnswer);
+answerBox3.addEventListener("click", handleAnswer);
+answerBox4.addEventListener("click", handleAnswer);
+
 
 function handleAnswer(event) {
-  const selected = event.target.textContent;
+  const selected = event.target.textContent; 
 
   clearInterval(timer);
 
-  if (selected === correctAnswer) {
-    score = score + timeLeft * 10;
-    output.textContent = "Correct!";
-  } else {
-    if(answerShow){
-      output.textContent = "Incorrect";
-    }
-    
-  }
+  answerBox1.disabled = true;
+  answerBox2.disabled = true;
+  answerBox3.disabled = true;
+  answerBox4.disabled = true;
 
+
+  if (selected === correctAnswer) {
+    score = score + timeLeft * 10 * questions[index][2];
+    output.textContent = "Correct!";
+    answerArray.push(correctAnswer);
+    timesArray.push(timeLeft);
+  } else {
+    output.textContent = "Incorrect";
+    answerArray.push("incorrect Answer");
+    timesArray.push(timeLeft);
+  }
+  //scoreDisplay.textContent = `${score}/${questions.length * 100}`;
+  scoreDisplay.textContent = `${score}`;
   setTimeout(nextQuestion, 300);
 }
+
+function submitAnswers(){
+  console.log(score);
+    fetch("/api/save-score", {
+    method: "POST",
+    headers: {
+    "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ score:score,answerArray: answerArray,questions: questions,timesArray:timesArray })
+})
+
+.then(res => res.json())
+.then(data => console.log(data))
+.catch(err => console.error(err));
+
+
+}
+console.log(cities);
