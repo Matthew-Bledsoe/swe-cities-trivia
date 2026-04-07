@@ -18,7 +18,6 @@ let score = 0;
 let timeLeft = 10;
 let timer;
 let correctAnswer = "";
-
 let pointsMultiplier = 1;
 
 // Hide answer buttons initially
@@ -90,20 +89,21 @@ function nextQuestion() {
   if (index < questions.length) {
     showQuestion();
   } else {//end of quiz
-    document.getElementById("question").textContent = `Quiz finished!` ;
+    document.getElementById("question").textContent = "";
     document.getElementById("timer").textContent = "";
     answerBox1.style.display = "none";
     answerBox2.style.display = "none";
     answerBox3.style.display = "none";
     answerBox4.style.display = "none";
-    startButton.style.display = "block";
+    startButton.style.display = "none";
     output.textContent = "";
-    submitAnswers();//sends answers and score to DB
-    
-    score = 0;
 
-   
-    
+    // Show modal
+    document.getElementById("modal-score").textContent = `Your score: ${score}`;
+    document.getElementById("modal").style.display = "flex";
+
+    submitAnswers();
+    score = 0;  
   }
 }
 
@@ -172,7 +172,6 @@ function handleAnswer(event) {
   if (selected === correctAnswer) {
     score = score + timeLeft * 10 * questions[index][2];
     output.textContent = "Correct!";
-    
   } else {
     output.textContent = "Incorrect";
   }
@@ -188,7 +187,7 @@ function submitAnswers(){
     headers: {
     "Content-Type": "application/json"
     },
-    body: JSON.stringify({ score:score})
+    body: JSON.stringify({score:score})
 })
 
 .then(res => res.json())
