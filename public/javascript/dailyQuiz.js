@@ -18,8 +18,6 @@ let score = 0;
 let timeLeft = 10;
 let timer;
 let correctAnswer = "";
-let answerArray = [];
-let timesArray = [];
 let pointsMultiplier = 1;
 
 // Hide answer buttons initially
@@ -105,7 +103,6 @@ function nextQuestion() {
     document.getElementById("modal").style.display = "flex";
 
     submitAnswers();
-    answerArray = [];
     score = 0;  
   }
 }
@@ -175,12 +172,8 @@ function handleAnswer(event) {
   if (selected === correctAnswer) {
     score = score + timeLeft * 10 * questions[index][2];
     output.textContent = "Correct!";
-    answerArray.push(correctAnswer);
-    timesArray.push(timeLeft);
   } else {
     output.textContent = "Incorrect";
-    answerArray.push("incorrect Answer");
-    timesArray.push(timeLeft);
   }
   //scoreDisplay.textContent = `${score}/${questions.length * 100}`;
   scoreDisplay.textContent = `${score}`;
@@ -194,7 +187,7 @@ function submitAnswers(){
     headers: {
     "Content-Type": "application/json"
     },
-    body: JSON.stringify({ score:score,answerArray: answerArray,questions: questions,timesArray:timesArray })
+    body: JSON.stringify({score:score})
 })
 
 .then(res => res.json())
