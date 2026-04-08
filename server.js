@@ -195,8 +195,8 @@ app.post("/register", async(req,res) =>{
             return res.status(500).send("Database error");
                     }
             
-            //req.session.user = username; this is what cameron had but didnt work
-            req.session.user = { username: username };
+            req.session.user = username; 
+            
             res.send("registered successfully");
         }
     );
@@ -221,8 +221,7 @@ app.post("/login",(req,res) => {
                 return res.status(400).send("Invalid password");
             }
 
-            //req.session.user=user.username; this is what cameron had
-            req.session.user = user;
+            req.session.user=user.username; 
             res.send("logged in");
         }
     );
@@ -377,7 +376,7 @@ app.post("/api/save-score", isLoggedIn, (req, res) => {
     const query = "INSERT INTO QuizAttempts (Username, QuizID, Score, Date) VALUES (?, ?, ?, CURDATE())";
     const score = req.body.score;
     const quizID = req.body.quizID;
-    const username = req.session.user.username;
+    const username = req.session.user;
 
     db.query(query, [username,quizID, score], (err, result) => {
         if (err) {
