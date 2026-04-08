@@ -269,7 +269,7 @@ app.get("/leaderboard", async (req, res) => {
     try {
         await query("TRUNCATE TABLE scores");
 
-        const rows = await query("SELECT username, score FROM quizattempts ORDER BY score DESC");
+        const rows = await query("SELECT username, score FROM quizattempts WHERE DATE(date) = CURDATE() ORDER BY score DESC");
         if (rows.length === 0) return res.render("leaderboard", { players: [], currentPage: page, totalPages: 0 });
 
         const values = rows.map(row => [row.username, row.score]);
