@@ -194,8 +194,9 @@ app.post("/register", async(req,res) =>{
 
             return res.status(500).send("Database error");
                     }
-
-            req.session.user = username;
+            
+            //req.session.user = username; this is what cameron had but didnt work
+            req.session.user = { username: username };
             res.send("registered successfully");
         }
     );
@@ -220,7 +221,8 @@ app.post("/login",(req,res) => {
                 return res.status(400).send("Invalid password");
             }
 
-            req.session.user=user.username;
+            //req.session.user=user.username; this is what cameron had
+            req.session.user = user;
             res.send("logged in");
         }
     );
