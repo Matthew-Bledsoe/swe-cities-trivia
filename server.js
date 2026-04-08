@@ -38,125 +38,115 @@ dbInit.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`, (err) => {
         database: process.env.DB_NAME
     });
 
-    initializeTables(db);
-    populateLeaderboard(db);
+    // initializeTables(db);
     // START SERVER ONLY AFTER DB IS READY
     app.listen(port, () => {
         console.log(`Server running on http://localhost:${port}`);
     });
 });
 
-function initializeTables(db) {
-    const scoresTable = `
-        CREATE TABLE IF NOT EXISTS scores (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(255),
-            score INT
-        )
-    `;
+// function initializeTables(db) {
+//     const scoresTable = `
+//         CREATE TABLE IF NOT EXISTS scores (
+//             id INT AUTO_INCREMENT PRIMARY KEY,
+//             username VARCHAR(255),
+//             score INT
+//         )a
+//     `;
 
-    const usersTable = `
-        CREATE TABLE IF NOT EXISTS users (
-            username VARCHAR(255) UNIQUE PRIMARY KEY,
-            password VARCHAR(255) NOT NULL,
-            Points INT,
-            IsAdmin binary,
-            LastCompletedDaily Date
-        )
-    `;
+//     const usersTable = `
+//         CREATE TABLE IF NOT EXISTS users (
+//             username VARCHAR(255) UNIQUE PRIMARY KEY,
+//             password VARCHAR(255) NOT NULL,
+//             Points INT,
+//             IsAdmin binary,
+//             LastCompletedDaily Date
+//         )
+//     `;
 
-    const quizzesTable =`
-        CREATE TABLE IF NOT EXISTS quizzes (
-            QuizID INT AUTO_INCREMENT PRIMARY KEY,
-            Date DATE,
-            TITLE VARCHAR(255)
-        )
-    `;
+//     const quizzesTable =`
+//         CREATE TABLE IF NOT EXISTS quizzes (
+//             QuizID INT AUTO_INCREMENT PRIMARY KEY,
+//             Date DATE,
+//             TITLE VARCHAR(255)
+//         )
+//     `;
 
-    const questionsTable=`
-        CREATE TABLE IF NOT EXISTS questions (
-            QuestionID INT AUTO_INCREMENT PRIMARY KEY,
-            Question VARCHAR(255),
-            Answer VARCHAR(255),
-            Points INT NULL DEFAULT 1,
-            Type VARCHAR(255)
-        )
-    `;
-
-
-    const quizQuestionsTable=`
-        CREATE TABLE IF NOT EXISTS QuizQuestions (
-            QuizID INT,
-            QuestionID INT,
-            QuestionOrder INT,
-
-            PRIMARY KEY (QuizID, QuestionID),
-
-            FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID)
-            ON DELETE CASCADE,
-
-            FOREIGN KEY (QuestionID) REFERENCES Questions(QuestionID)
-            ON DELETE CASCADE
-            )
-    `;
-
-    const QuizAttempts = `
-        CREATE TABLE IF NOT EXISTS QuizAttempts (
-            AttemptID INT AUTO_INCREMENT PRIMARY KEY,
-            Username VARCHAR(255) NOT NULL,
-            QuizID INT NOT NULL,
-            Score INT NOT NULL,
-            Date DATE NOT NULL,
-            FOREIGN KEY (Username) REFERENCES users(username),
-            FOREIGN KEY (QuizID) REFERENCES quizzes(QuizID)
-            )
-    `;
+//     const questionsTable=`
+//         CREATE TABLE IF NOT EXISTS questions (
+//             QuestionID INT AUTO_INCREMENT PRIMARY KEY,
+//             Question VARCHAR(255),
+//             Answer VARCHAR(255),
+//             Points INT NULL DEFAULT 1,
+//             Type VARCHAR(255)
+//         )
+//     `;
 
 
-    db.query(scoresTable, (err) => {
-        if (err) throw err;
-        console.log("Scores table ensured");
-    });
+//     const quizQuestionsTable=`
+//         CREATE TABLE IF NOT EXISTS QuizQuestions (
+//             QuizID INT,
+//             QuestionID INT,
+//             QuestionOrder INT,
 
-    db.query(usersTable, (err) =>{
-        if(err) throw err;
-        console.log("Users table ensured.");
-    });
+//             PRIMARY KEY (QuizID, QuestionID),
 
-    db.query(questionsTable, (err) =>{
-        if(err) throw err;
-        console.log("Questions table ensured.");
-    });
+//             FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID)
+//             ON DELETE CASCADE,
 
-    db.query(quizzesTable, (err) =>{
-        if(err) throw err;
-        console.log("Quiz table ensured.");
-    });
+//             FOREIGN KEY (QuestionID) REFERENCES Questions(QuestionID)
+//             ON DELETE CASCADE
+//             )
+//     `;
 
-    db.query(quizQuestionsTable, (err) =>{
-        if(err) throw err;
-        console.log("QuizQuestions table ensured.");
-    });
+//     const QuizAttempts = `
+//         CREATE TABLE IF NOT EXISTS QuizAttempts (
+//             AttemptID INT AUTO_INCREMENT PRIMARY KEY,
+//             Username VARCHAR(255) NOT NULL,
+//             QuizID INT NOT NULL,
+//             Score INT NOT NULL,
+//             Date DATE NOT NULL,
+//             FOREIGN KEY (Username) REFERENCES users(username),
+//             FOREIGN KEY (QuizID) REFERENCES quizzes(QuizID)
+//             )
+//     `;
 
 
-    db.query(QuizAttempts, (err) => {
-        if (err) throw err;
-        console.log("quizAttempts table ensured");
-    });
-}
+//     db.query(scoresTable, (err) => {
+//         if (err) throw err;
+//         console.log("Scores table ensured");
+//     });
+
+//     db.query(usersTable, (err) =>{
+//         if(err) throw err;
+//         console.log("Users table ensured.");
+//     });
+
+//     db.query(questionsTable, (err) =>{
+//         if(err) throw err;
+//         console.log("Questions table ensured.");
+//     });
+
+//     db.query(quizzesTable, (err) =>{
+//         if(err) throw err;
+//         console.log("Quiz table ensured.");
+//     });
+
+//     db.query(quizQuestionsTable, (err) =>{
+//         if(err) throw err;
+//         console.log("QuizQuestions table ensured.");
+//     });
+
+
+//     db.query(QuizAttempts, (err) => {
+//         if (err) throw err;
+//         console.log("quizAttempts table ensured");
+//     });
+// }
 
 function populateLeaderboard(db) {
     db.query("TRUNCATE TABLE scores", (err) => {
         if (err) throw err;
-
-        const totalPlayers = 60;
-        const values = [];
-
-        for (let i = 1; i <= totalPlayers; i++) {
-            const username = `Player${i}`;
-            const score = Math.floor(Math.random() * 1000);
-            values.push([username, score]);
-        }
 
         db.query("INSERT INTO scores (username, score) VALUES ?", [values], (err, result) => {
             if (err) throw err;
@@ -350,6 +340,7 @@ app.get("/leaderboard", (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const pageSize = 30; 
     const offset = (page - 1) * pageSize;
+    populateLeaderboard(db);
 
     db.query("SELECT username, score FROM scores ORDER BY score DESC LIMIT ? OFFSET ?", [pageSize, offset], (err, results) => {
         db.query("SELECT COUNT(*) AS count FROM scores", (err2, countResult) => {
@@ -411,9 +402,7 @@ async function generateDailyQuiz(title, numQuestions) {
   );
 
   const rows = questions.map((q, index) => [quizID, q.QuestionID, index + 1]);
-  await dbPromise.query(
-    'INSERT INTO QuizQuestions (QuizID, QuestionID, QuestionOrder) VALUES ?', [rows]
-  );
+  await dbPromise.query('INSERT INTO QuizQuestions (QuizID, QuestionID, QuestionOrder) VALUES ?', [rows]);
 
   console.log(`Daily quiz created with ID ${quizID}`);
 }
