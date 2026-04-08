@@ -22,138 +22,23 @@ app.use((req, res, next) => {
     next();
 });
 
-const dbInit = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
-});
+// const dbInit = mysql.createConnection({
+//     host: process.env.DB_HOST,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD
+// });
+//??^^idk what this does and my code runs without it but it was in the original code so im leaving it here for now (why did copilot feel the need to finish writing my fucking comment istg)
 
-dbInit.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`, (err) => {
-    if (err) throw err;
-
-    db = mysql.createConnection({
+db = mysql.createConnection({
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME
-    });
-
-    // initializeTables(db);
-    // START SERVER ONLY AFTER DB IS READY
-    app.listen(port, () => {
-        console.log(`Server running on http://localhost:${port}`);
-    });
 });
 
-// function initializeTables(db) {
-//     const scoresTable = `
-//         CREATE TABLE IF NOT EXISTS scores (
-//             id INT AUTO_INCREMENT PRIMARY KEY,
-//             username VARCHAR(255),
-//             score INT
-//         )a
-//     `;
-
-//     const usersTable = `
-//         CREATE TABLE IF NOT EXISTS users (
-//             username VARCHAR(255) UNIQUE PRIMARY KEY,
-//             password VARCHAR(255) NOT NULL,
-//             Points INT,
-//             IsAdmin binary,
-//             LastCompletedDaily Date
-//         )
-//     `;
-
-//     const quizzesTable =`
-//         CREATE TABLE IF NOT EXISTS quizzes (
-//             QuizID INT AUTO_INCREMENT PRIMARY KEY,
-//             Date DATE,
-//             TITLE VARCHAR(255)
-//         )
-//     `;
-
-//     const questionsTable=`
-//         CREATE TABLE IF NOT EXISTS questions (
-//             QuestionID INT AUTO_INCREMENT PRIMARY KEY,
-//             Question VARCHAR(255),
-//             Answer VARCHAR(255),
-//             Points INT NULL DEFAULT 1,
-//             Type VARCHAR(255)
-//         )
-//     `;
-
-
-//     const quizQuestionsTable=`
-//         CREATE TABLE IF NOT EXISTS QuizQuestions (
-//             QuizID INT,
-//             QuestionID INT,
-//             QuestionOrder INT,
-
-//             PRIMARY KEY (QuizID, QuestionID),
-
-//             FOREIGN KEY (QuizID) REFERENCES Quizzes(QuizID)
-//             ON DELETE CASCADE,
-
-//             FOREIGN KEY (QuestionID) REFERENCES Questions(QuestionID)
-//             ON DELETE CASCADE
-//             )
-//     `;
-
-//     const QuizAttempts = `
-//         CREATE TABLE IF NOT EXISTS QuizAttempts (
-//             AttemptID INT AUTO_INCREMENT PRIMARY KEY,
-//             Username VARCHAR(255) NOT NULL,
-//             QuizID INT NOT NULL,
-//             Score INT NOT NULL,
-//             Date DATE NOT NULL,
-//             FOREIGN KEY (Username) REFERENCES users(username),
-//             FOREIGN KEY (QuizID) REFERENCES quizzes(QuizID)
-//             )
-//     `;
-
-
-//     db.query(scoresTable, (err) => {
-//         if (err) throw err;
-//         console.log("Scores table ensured");
-//     });
-
-//     db.query(usersTable, (err) =>{
-//         if(err) throw err;
-//         console.log("Users table ensured.");
-//     });
-
-//     db.query(questionsTable, (err) =>{
-//         if(err) throw err;
-//         console.log("Questions table ensured.");
-//     });
-
-//     db.query(quizzesTable, (err) =>{
-//         if(err) throw err;
-//         console.log("Quiz table ensured.");
-//     });
-
-//     db.query(quizQuestionsTable, (err) =>{
-//         if(err) throw err;
-//         console.log("QuizQuestions table ensured.");
-//     });
-
-
-//     db.query(QuizAttempts, (err) => {
-//         if (err) throw err;
-//         console.log("quizAttempts table ensured");
-//     });
-// }
-
-function populateLeaderboard(db) {
-    db.query("TRUNCATE TABLE scores", (err) => {
-        if (err) throw err;
-
-        db.query("INSERT INTO scores (username, score) VALUES ?", [values], (err, result) => {
-            if (err) throw err;
-            console.log("Leaderboard reset and populated");
-        });
-    });
-}
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -217,13 +102,11 @@ app.post("/login",(req,res) => {
     );
 });
 
-
 app.post("/logout",(req,res)=>{
     req.session.destroy(()=>{
         res.redirect("/account");
     });
 });
-
 
 //Im not acsesing the quizzes using there id but instead there title which may be bad.
 app.get("/quiz/:name", (req, res) => {
@@ -267,8 +150,6 @@ app.get("/quiz/:name", (req, res) => {
     });
 });
 
-
-
 app.get("/", (req, res) => {
     res.render("home");
 });
@@ -284,12 +165,10 @@ app.get('/daily', (req, res) => {
   });
 });
 
-
 function isLoggedIn(req, res, next) {
   if (req.session.user) return next();
   res.redirect('/account');
 }
-
 
 app.get("/dailyQuiz", isLoggedIn, (req, res) => {
     const username = req.session.user;
@@ -360,10 +239,6 @@ app.get("/dailyQuiz", isLoggedIn, (req, res) => {
     });
 });
 
-
-
-
-
 app.get("/practice", (req, res) => {
     //All non daily quizzes
     const query = "SELECT * FROM Quizzes WHERE Date is NULL"
@@ -379,28 +254,43 @@ app.get("/account", (req, res) => {
     res.render("account");
 });
 
-app.get("/leaderboard", (req, res) => {
+app.get("/leaderboard", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const pageSize = 30; 
+    const pageSize = 30;
     const offset = (page - 1) * pageSize;
-    populateLeaderboard(db);
 
-    db.query("SELECT username, score FROM scores ORDER BY score DESC LIMIT ? OFFSET ?", [pageSize, offset], (err, results) => {
-        db.query("SELECT COUNT(*) AS count FROM scores", (err2, countResult) => {
-
-            const totalEntries = countResult[0].count;
-            const totalPages = Math.ceil(totalEntries / pageSize);
-
-            res.render("leaderboard", { 
-                players: results,
-                currentPage: page,
-                totalPages
-            });
+    const query = (sql, params = []) => new Promise((resolve, reject) => {
+        db.query(sql, params, (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
         });
     });
+
+    try {
+        await query("TRUNCATE TABLE scores");
+
+        const rows = await query("SELECT username, score FROM quizattempts ORDER BY score DESC");
+        if (rows.length === 0) return res.render("leaderboard", { players: [], currentPage: page, totalPages: 0 });
+
+        const values = rows.map(row => [row.username, row.score]);
+        await query("INSERT INTO scores (username, score) VALUES ?", [values]);
+
+        const results = await query("SELECT username, score FROM scores ORDER BY score DESC LIMIT ? OFFSET ?", [pageSize, offset]);
+        const countResult = await query("SELECT COUNT(*) AS count FROM scores");
+
+        const totalEntries = countResult[0].count;
+        const totalPages = Math.ceil(totalEntries / pageSize);
+
+        res.render("leaderboard", {
+            players: results,
+            currentPage: page,
+            totalPages
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server error");
+    }
 });
-
-
 
 //this receives the data from the quiz.js file and adds it to the DB 
 app.post("/api/save-score", isLoggedIn, (req, res) => {

@@ -87,3 +87,28 @@
     border-radius: 50%;
     object-fit: cover;
 }
+
+.leaderboard-box {
+            border: 2px solid #333;
+            padding: 15px;
+            width: 300px;
+            margin: 20px auto;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .pages {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .pages a {
+            margin: 0 5px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #333;
+        }
+        .pages a.active {
+            background-color: #333;
+            color: white;
+        }
