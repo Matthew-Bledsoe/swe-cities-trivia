@@ -99,13 +99,19 @@ function initializeTables(db) {
             ON DELETE CASCADE
             )
     `;
-    //this is for testing
-    const fakeTable=`
-        CREATE TABLE IF NOT EXISTS fakeTable(
-            ID INT AUTO_INCREMENT PRIMARY KEY,
-            Value INT
+
+    const QuizAttempts = `
+        CREATE TABLE IF NOT EXISTS QuizAttempts (
+            AttemptID INT AUTO_INCREMENT PRIMARY KEY,
+            Username VARCHAR(255) NOT NULL,
+            QuizID INT NOT NULL,
+            Score INT NOT NULL,
+            Date DATE NOT NULL,
+            FOREIGN KEY (Username) REFERENCES users(username),
+            FOREIGN KEY (QuizID) REFERENCES quizzes(QuizID)
             )
     `;
+
 
     db.query(scoresTable, (err) => {
         if (err) throw err;
@@ -132,9 +138,10 @@ function initializeTables(db) {
         console.log("QuizQuestions table ensured.");
     });
 
-    db.query(fakeTable, (err) => {
+
+    db.query(QuizAttempts, (err) => {
         if (err) throw err;
-        console.log("fake table ensured");
+        console.log("quizAttempts table ensured");
     });
 }
 
@@ -187,8 +194,9 @@ app.post("/register", async(req,res) =>{
 
             return res.status(500).send("Database error");
                     }
-
-            req.session.user = username;
+            
+            req.session.user = username; 
+            
             res.send("registered successfully");
         }
     );
@@ -213,11 +221,12 @@ app.post("/login",(req,res) => {
                 return res.status(400).send("Invalid password");
             }
 
-            req.session.user=user.username;
+            req.session.user=user.username; 
             res.send("logged in");
         }
     );
 });
+
 
 app.post("/logout",(req,res)=>{
     req.session.destroy(()=>{
@@ -277,14 +286,18 @@ app.get('/daily', (req, res) => {
     if (err) throw err;
     if (result.length === 0) return res.status(404).send('No daily quiz today');
     
-    res.redirect(`/dailyQuiz/${encodeURIComponent(result[0].Title)}`);
+    res.redirect(`/dailyQuiz`);
   });
 });
 
-app.get("/dailyQuiz/:name", (req, res) => {
-    const name = req.params.name;
-
-    const query0 = "SELECT QuizID, Title FROM Quizzes WHERE Title = ?";
+app.get("/dailyQuiz", (req, res) => {
+    const query0 = `
+    SELECT QuizID, Title
+    FROM Quizzes
+    WHERE Date = CURDATE()
+    ORDER BY QuizID DESC
+    LIMIT 1;
+    `;
 
     const query1 = `
     SELECT qb.*
@@ -297,7 +310,7 @@ app.get("/dailyQuiz/:name", (req, res) => {
 
     const query2 = "SELECT Answer FROM Questions";
 
-    db.query(query0, [name], (err, quizResult) => {
+    db.query(query0, (err, quizResult) => {
         if (err) throw err;
         if (quizResult.length === 0) return res.status(404).send("Quiz not found");
 
@@ -308,10 +321,10 @@ app.get("/dailyQuiz/:name", (req, res) => {
             db.query(query2, (err, results2) => {
                 if (err) throw err;
                 res.render("dailyQuiz", {
-                    id:            quiz.QuizID,
-                    title:         quiz.Title,
+                    quizID:         quiz.QuizID,
+                    title:          quiz.Title,
                     questionsTable: results1,
-                    allAnswers:    results2
+                    allAnswers:     results2
                 });
             });
         });
@@ -319,6 +332,7 @@ app.get("/dailyQuiz/:name", (req, res) => {
 });
 
 app.get("/practice", (req, res) => {
+    //All non daily quizzes
     const query = "SELECT * FROM Quizzes WHERE Date is NULL"
 
     db.query(query, (err, results) => {
@@ -352,15 +366,56 @@ app.get("/leaderboard", (req, res) => {
     });
 });
 
+function isLoggedIn(req, res, next) {
+  if (req.session.user) return next();
+  res.redirect('/login');
+}
+
 //this receives the data from the quiz.js file and adds it to the DB 
-app.post("/api/save-score", (req, res) => {
-    const query = "INSERT INTO FakeTable (Value) VALUES (?)"; //This line will be modified when we do this for real
+app.post("/api/save-score", isLoggedIn, (req, res) => {
+    const query = "INSERT INTO QuizAttempts (Username, QuizID, Score, Date) VALUES (?, ?, ?, CURDATE())";
     const score = req.body.score;
-    db.query(query,[score],(err,result)=>{
-        if(err){
+    const quizID = req.body.quizID;
+    const username = req.session.user;
+
+    db.query(query, [username,quizID, score], (err, result) => {
+        if (err) {
             console.error(err);
             return res.status(500).send("Database Error");
         }
         res.json({ message: "Score saved!" });
     });
 });
+
+//this is needed for the generateDailyQuiz Function to work we might need to redo some other code to clean it up later
+const dbPromise = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+}).promise();
+
+async function generateDailyQuiz(title, numQuestions) {
+  const [existing] = await dbPromise.query(
+    'SELECT QuizID FROM Quizzes WHERE Date = CURDATE()'
+  );
+  if (existing.length > 0) return console.log('Quiz already exists for today');
+
+  const [result] = await dbPromise.query(
+    'INSERT INTO Quizzes (Title) VALUES (?)', [title]
+  );
+  const quizID = result.insertId;
+
+  const [questions] = await dbPromise.query(
+    'SELECT QuestionID FROM Questions ORDER BY RAND() LIMIT ?', [numQuestions]
+  );
+
+  const rows = questions.map((q, index) => [quizID, q.QuestionID, index + 1]);
+  await dbPromise.query(
+    'INSERT INTO QuizQuestions (QuizID, QuestionID, QuestionOrder) VALUES ?', [rows]
+  );
+
+  console.log(`Daily quiz created with ID ${quizID}`);
+}
+
+generateDailyQuiz('Daily Quiz', 10);
