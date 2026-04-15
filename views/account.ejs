@@ -2,19 +2,89 @@
 <html>
 <head>
     <title>Cities Trivia</title>
-    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/leaderboard">Leaderboard</a>
-            <a href="/daily">Daily Quiz</a>
-            <a href="/practice">Practice Quiz</a>
-            <a href="/account">Account</a>
-        </nav>
-    </header>
+    <header class="header">
+        <div class="header-inner">
+            <a href="/account" class="logo">Account</a>
 
+            <nav class="navbar">
+                <a href="/">Home</a>
+                <a href="/leaderboard">Leaderboard</a>
+                <a href="/daily">Daily Quiz</a>
+                <a href="/practice">Practice Quiz</a>
+                <% if (!user) { %>
+                    <a class="active" href="/account">Log in</a>
+                <% } else { %>
+                    <a class="active" href="/account">Account</a>
+                <% } %>
+            </nav>
+        </div>
+    </header>
+    <div class="account-container">
+
+        <% if (!user) { %>
+
+        <div class="account-card">
+            <div class="account-title">Create Account</div>
+
+            <form id="accountSubmissionForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input id="createUsername" type="text" placeholder="Enter Username">
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input id="createPassword" type="password" placeholder="Enter Password">
+                </div>
+
+                <button class="btn" type="submit">Create Account</button>
+            </form>
+        </div>
+
+        <div class="account-card">
+            <div class="account-title">Login</div>
+
+            <form id="accountLoginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input id="loginUsername" type="text" placeholder="Enter Username">
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input id="loginPassword" type="password" placeholder="Enter Password">
+                </div>
+
+                <button class="btn" type="submit">Login</button>
+            </form>
+        </div>
+
+        <% } else { %>
+
+        <input type="hidden" id="currentUsername" value="<%= user %>">
+
+        <div class="account-card profile-card">
+            <img src="<%= userPic || '/pics/account.jpg' %>" class="profile-pic">
+
+            <div class="user-meta">
+                <div><strong><%= user %></strong></div>
+                <div style="color: #666; font-size: 13px;">Logged in</div>
+            </div>
+        </div>
+
+        <div class="account-card">
+            <form action="/logout" method="POST">
+                <button class="btn" type="submit">Log Out</button>
+            </form>
+        </div>
+        </div>
+            
+        <% } %>
+    </div>
 
 </body>
+<script src="/javascript/account.js"></script>
 </html>

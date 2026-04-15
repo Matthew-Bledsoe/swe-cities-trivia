@@ -2,19 +2,34 @@
 <html>
 <head>
     <title>Cities Trivia</title>
-    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/leaderboard">Leaderboard</a>
-            <a href="/daily">Daily Quiz</a>
-            <a href="/practice">Practice Quiz</a>
-            <a href="/account">Account</a>
-        </nav>
-    </header>
-    <a href = "/quiz"> Do the quiz? </a>
+    <header class="header">
+        <div class="header-inner">
+            <a href="/practice" class="logo">Practice Quiz</a>
 
+            <nav class="navbar">
+                <a href="/">Home</a>
+                <a href="/leaderboard">Leaderboard</a>
+                <a href="/daily">Daily Quiz</a>
+                <a href="/practice" class="active">Practice Quiz</a>
+                <% if (!user) { %>
+                    <a href="/account">Log in</a>
+                <% } else { %>
+                    <a href="/account">Account</a>
+                <% } %>
+            </nav>
+        </div>
+    </header>
+    <ul>
+    <% quizzesTable.forEach(function(quiz) { %>
+        <li>
+            <a href="/quiz/<%= quiz.TITLE %>">
+                <%= quiz.TITLE %>
+            </a>
+        </li>
+    <% }); %>
+    </ul>
 </body>
 </html>
