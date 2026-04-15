@@ -25,7 +25,10 @@
         </div>
     </header>
 
-    
+    <% if (alreadyTaken) { %>
+    <h2>You already completed today's quiz!</h2>
+    <p>Your score was: <%= score %></p>
+    <% } else { %>
     <div id = "quizContent">
         
         
@@ -79,7 +82,7 @@
             </div>
         </div>
     
-     
+     <% } %>
     
     <script>
         const quizID = <%- quizID %>;
