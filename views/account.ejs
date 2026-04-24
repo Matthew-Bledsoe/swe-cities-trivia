@@ -21,7 +21,10 @@
                 <a href="/practice">Practice Quiz</a>
                 <hr class="vertical">
                 <a href="/account">Account</a>
-                <hr class="vertical">
+                <% if (IsAdmin) { %>
+                    <hr class="vertical">
+                    <a href="/admin">Admin Panel</a>
+                <% } %>
             </nav>
         </div>
     </header>
