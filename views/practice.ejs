@@ -24,17 +24,21 @@
     </header>
     <% Object.keys(groupedQuizzes).forEach(function(region) { %>
 
-    <h2><%= region %></h2>
+        <div class="region-block">
 
-    <ul>
-        <% groupedQuizzes[region].forEach(function(quiz) { %>
-            <li>
-                <a href="/quiz/<%= encodeURIComponent(quiz.TITLE) %>">
-                    <%= quiz.TITLE %>
-                </a>
-            </li>
-        <% }); %>
-    </ul>
+            <h2 class="region-title"><%= region %></h2>
+
+            <div class="quiz-grid">
+                <% groupedQuizzes[region].forEach(function(quiz) { %>
+
+                    <a class="quiz-card-item" href="/quiz/<%= encodeURIComponent(quiz.TITLE) %>">
+                        <%= quiz.TITLE %>
+                    </a>
+
+                <% }); %>
+            </div>
+
+        </div>
 
     <% }); %>
 </body>
