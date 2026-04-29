@@ -362,6 +362,7 @@ app.get("/practice", (req, res) => {
     });
 });
 
+//this selects a random quiz from the given group and redirects the user their. This is only used by the continent buttons on the home page
 app.get("/practice-group/:group", (req, res) => {
     const group = (req.params.group || "").toLowerCase();
 
