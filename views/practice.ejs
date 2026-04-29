@@ -22,14 +22,22 @@
             </nav>
         </div>
     </header>
-    <ul>
-    <% quizzesTable.forEach(function(quiz) { %>
-        <li>
-            <a href="/quiz/<%= quiz.TITLE %>">
-                <%= quiz.TITLE %>
-            </a>
-        </li>
+    <% Object.keys(groupedQuizzes).forEach(function(region) { %>
+
+        <div class="region-block">
+
+            <h2 class="region-title"><%= region %></h2>
+
+           <div class="quiz-grid">
+                <% groupedQuizzes[region].forEach(function(quiz) { %>
+                    <a class="quiz-card-item" href="/quiz/id/<%= quiz.QuizID %>">
+                        <%= quiz.TITLE %>
+                    </a>
+                <% }); %>
+            </div>
+
+        </div>
+
     <% }); %>
-    </ul>
 </body>
 </html>

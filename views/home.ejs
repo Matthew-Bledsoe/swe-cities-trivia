@@ -7,7 +7,7 @@
 <body>
     <header class="header">
         <div class="header-inner">
-            <a href="/home" class="logo">Home</a>
+            <a href="/" class="logo">Home</a>
 
             <nav class="navbar">
                 <a href="/" class="active">Home</a>
@@ -19,13 +19,21 @@
                 <% } else { %>
                     <a href="/account">Account</a>
                 <% } %>
+                
+                <% if (IsAdmin) { %>
+                    <hr class="vertical">
+                    <a href="/admin">Admin Panel</a>
+                <% } %>
             </nav>
         </div>
     </header>
 
    <main class="home-hero">
         <div class="hero-content">
-            <h1>🌍 Cities Trivia</h1>
+            <h1>
+                <img src="/pics/citrivia.png" class="logo-icon">
+                Cities Trivia
+            </h1>
             <p>Test your knowledge of cities around the world. Play daily or practice anytime.</p>
 
             <div class="hero-buttons">
@@ -39,7 +47,10 @@
             
             <div class="map-hotspot" id="europe"></div>
             <div class="map-hotspot" id="asia"></div>
+            <div class="map-hotspot" id="africa"></div>
+            <div class="map-hotspot" id="oceania"></div>
             <div class="map-hotspot" id="americas"></div>
+            <div class="map-hotspot" id="southamerica"></div>
         </div>
 
     </main>
@@ -53,7 +64,7 @@
 
             e.preventDefault();
 
-            document.querySelector(".hero-map img").classList.add("map-zoom-out");
+            document.querySelector(".map-wrapper img").classList.add("map-zoom-out");
             document.body.classList.add("page-fade-out");
 
             setTimeout(() => {
@@ -63,10 +74,12 @@
 
         document.querySelectorAll(".map-hotspot").forEach(region => {
             region.addEventListener("click", () => {
-                region.style.background = "rgba(76,175,80,0.4)";
-                
+                const group = region.id.toLowerCase();
+
+                region.style.background = "rgba(0,0,0,0.15)";
+
                 setTimeout(() => {
-                    window.location.href = "/daily?region=" + region.id;
+                    window.location.href = "/practice-group/" + group;
                 }, 400);
             });
         });

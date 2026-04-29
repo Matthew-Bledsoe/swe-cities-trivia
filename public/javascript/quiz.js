@@ -1,9 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-//From database
+// From quiz.ejs
 // questions = [[Question,answer,points]]
 // cities =[answer]
-
 let output =        document.getElementById("output");
 let startButton =   document.getElementById("startButton");
 let question =      document.getElementById("question");
@@ -19,6 +17,7 @@ let answerBox4 = document.getElementById("ans4");
 let score = 0;
 let timeLeft = 10;
 let timer;
+let timerActive = false;
 let correctAnswer = "";
 let index = 0;
 
@@ -85,6 +84,7 @@ answerBox4.style.display = "none";
 function startQuiz() {
   scoreDisplay.textContent = score;
   index = 0;
+  
 
   startButton.style.display = "none";
 
@@ -102,11 +102,14 @@ startButton.addEventListener("click", startQuiz);
 // SHOW QUESTION
 // -------------------------
 function showQuestion() {
+  //output is the line that says incorrect and correct at the bottom
+  output.textContent = "";
 
-  answerBox1.disabled = false;
-  answerBox2.disabled = false;
-  answerBox3.disabled = false;
-  answerBox4.disabled = false;
+   // 🔥 RESET VISUAL STATE (IMPORTANT)
+  [answerBox1, answerBox2, answerBox3, answerBox4].forEach(btn => {
+    btn.classList.remove("correct-btn", "wrong-btn");
+    btn.disabled = false;
+  });
 
   correctAnswer = questions[index][1];
   question.textContent = questions[index][0];
@@ -118,18 +121,28 @@ function showQuestion() {
   timeLeft = 10;
   timerDisplay.textContent = `Time: ${timeLeft}`;
 
+  timerActive = false;
   clearInterval(timer);
+  timerActive = true;
 
   timer = setInterval(() => {
+    if (!timerActive) return;
+    
     timeLeft--;
     timerDisplay.textContent = `Time: ${timeLeft}`;
 
     if (timeLeft === 0) {
+      timerActive = false;
       clearInterval(timer);
       output.textContent = "TIME OVER";
       setTimeout(animateNextQuestion, 300);
     }
   }, 1000);
+
+  answerBox1.disabled = false;
+  answerBox2.disabled = false;
+  answerBox3.disabled = false;
+  answerBox4.disabled = false;
 }
 
 // -------------------------
@@ -137,7 +150,6 @@ function showQuestion() {
 // -------------------------
 function nextQuestion() {
   index++;
-
   if (index < questions.length) {
     showQuestion();
   } else {
@@ -153,7 +165,7 @@ function nextQuestion() {
 
     output.textContent = "";
 
-    submitAnswers();
+    
     score = 0;
   }
 }
@@ -161,6 +173,7 @@ function nextQuestion() {
 // -------------------------
 // ANSWERS
 // -------------------------
+//this selects a random index for the correct answer to be at and sets it with the setAnswer buttons function. the order of the incorects does not matter.
 function setAnswers(index) {
   const ans = Math.floor(Math.random() * 4) + 1;
   const correctCityIndex = cities.indexOf(questions[index][1]);
@@ -176,7 +189,7 @@ function setAnswers(index) {
     setAnswerButtons(cities[incorrects[0]], cities[incorrects[1]], cities[incorrects[2]], questions[index][1]);
   }
 }
-
+//this select three random numbers between min and max exlcuding excludeIndex
 function getThreeUnique(min, max, excludeIndex) {
   const arr = [];
   for (let i = min; i <= max; i++) {
@@ -185,7 +198,7 @@ function getThreeUnique(min, max, excludeIndex) {
   arr.sort(() => Math.random() - 0.5);
   return arr.slice(0, 3);
 }
-
+//this is just a shortcut for setting answers button text content 
 function setAnswerButtons(one, two, three, four) {
   answerBox1.textContent = one;
   answerBox2.textContent = two;
@@ -199,6 +212,7 @@ function setAnswerButtons(one, two, three, four) {
 function handleAnswer(event) {
   const selected = event.target.textContent;
 
+  timerActive = false;
   clearInterval(timer);
 
   answerBox1.disabled = true;
@@ -206,18 +220,29 @@ function handleAnswer(event) {
   answerBox3.disabled = true;
   answerBox4.disabled = true;
 
+  // ❌ wrong
+  if (selected !== correctAnswer) {
+    output.textContent = "Incorrect";
+    event.target.classList.add("wrong-btn");
+    showWrongX();
+  }
+
+  // ✅ correct (always highlight correct answer)
+  [answerBox1, answerBox2, answerBox3, answerBox4].forEach(btn => {
+    if (btn.textContent === correctAnswer) {
+      btn.classList.add("correct-btn");
+    }
+  });
+
   if (selected === correctAnswer) {
-    score += timeLeft * 10 * questions[index][2];
+    score += timeLeft * 10;
     output.textContent = "Correct!";
-    showCorrectCheck(); // ✅ NEW
-  } else {
-      output.textContent = "Incorrect";
-      showWrongX(); // ❌ existing
+    showCorrectCheck();
   }
 
   scoreDisplay.textContent = score;
 
-  setTimeout(animateNextQuestion, 300);
+  setTimeout(animateNextQuestion, 700); // slight delay so user sees highlight
 }
 
 answerBox1.addEventListener("click", handleAnswer);
@@ -225,15 +250,7 @@ answerBox2.addEventListener("click", handleAnswer);
 answerBox3.addEventListener("click", handleAnswer);
 answerBox4.addEventListener("click", handleAnswer);
 
-// -------------------------
-// SAVE SCORE
-// -------------------------
-function submitAnswers() {
-  fetch("/api/save-score", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ score: score })
-  });
-}
+
+
 
 });
